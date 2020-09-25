@@ -1,0 +1,14 @@
+
+1. vtoydump
+  https://github.com/ventoy/vtoydump
+
+2. partx
+  downlaod source code from https://codeload.github.com/karelzak/util-linux/zip/v2.36
+  ./autogen.sh
+  ./configure --disable-all-programs --enable-partx --enable-libblkid --enable-libsmartcols
+  make
+  here we static link libuuid libblkid libsmartcols
+  grep gcc.*partx -r *  to find the last link command and replace libblkid.so to libblkid.a .....
+
+  gcc -std=gnu99 -fsigned-char -fno-common -Wall -Wextra -Wmissing-declarations -Wmissing-parameter-type -Wmissing-prototypes -Wno-missing-field-initializers -Wredundant-decls -Wsign-compare -Wtype-limits -Wuninitialized -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wnested-externs -Wpointer-arith -Wstrict-prototypes -Wimplicit-function-declaration -Werror=sequence-point -I./libblkid/src -I./libsmartcols/src -g -O2 -o partx  disk-utils/partx-partx.o  ./.libs/libblkid.a ./.libs/libcommon.a ./.libs/libsmartcols.a
+
