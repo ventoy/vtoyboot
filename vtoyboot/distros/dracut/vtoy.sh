@@ -29,13 +29,18 @@ mkdir -p $vtmodpath
 
 cp -a $vtdumpcmd /bin/vtoydump
 cp -a $partxcmd /bin/vtoypartx
-cp -a ./distros/$os/module-setup.sh $vtmodpath/
-cp -a ./distros/$os/ventoy-settled.sh $vtmodpath/
+cp -a ./distros/$initrdtool/module-setup.sh $vtmodpath/
+cp -a ./distros/$initrdtool/ventoy-settled.sh $vtmodpath/
 
+
+addon_drivers="usb-storage mptsas mptspi efivars"
+
+for md in $addon_drivers; do
+    if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
+        extdrivers="$extdrivers $md"
+    fi
+done
 
 echo "updating the initramfs, please wait ..."
-extdrivers='usb-storage'
 dracut -f --force-drivers "$extdrivers" --add "ventoy"
-
-    
 

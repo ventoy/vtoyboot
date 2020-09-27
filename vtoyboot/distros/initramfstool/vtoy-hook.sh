@@ -33,13 +33,13 @@ esac
 
 # Begin real processing below this line
 
-if [ -e /sys/firmware/efi ]; then
-    vtKerver=$(uname -r)
-    
-    if [ -f /lib/modules/$vtKerver/kernel/drivers/firmware/efi/efivars.ko ]; then
-        force_load efivars
+addon_drivers="usb-storage mptsas mptspi efivars"
+
+for md in $addon_drivers; do
+    if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
+        force_load $md
     fi
-fi
+done
 
 copy_exec /sbin/vtoypartx /sbin
 copy_exec /sbin/vtoydump  /sbin

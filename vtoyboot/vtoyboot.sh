@@ -19,34 +19,19 @@
 
 vtoy_version=1.0.0
 
-vtoy_get_os_type() {
-    if grep -q 'el[78]' /proc/version; then
-        echo 'rhel7'; return
-    elif grep -q '[Uu]buntu' /proc/version; then
-        echo 'ubuntu'; return
-    elif grep -q '[Dd]eepin' /proc/version; then
-        echo 'deepin'; return    
-    else
-        if [ -e /etc/os-release ]; then
-            if grep -q 'Fedora' /etc/os-release; then
-                echo 'fedora'; return
-            fi
-        fi
-    
+vtoy_get_initrdtool_type() {  
+    . ./distros/initramfstool/check.sh
+    . ./distros/mkinitcpio/check.sh
+    . ./distros/dracut/check.sh
 
-        . ./distros/initramfstool/check.sh
-        . ./distros/mkinitcpio/check.sh
-        . ./distros/dracut/check.sh
-        
-        if vtoy_check_initramfs_tool; then
-            echo 'initramfstool'; return
-		elif vtoy_check_mkinitcpio; then
-			echo 'mkinitcpio'; return
-        elif vtoy_check_dracut; then
-			echo 'dracut'; return
-        else
-            echo 'unknown'; return
-        fi
+    if vtoy_check_initramfs_tool; then
+        echo 'initramfstool'; return
+    elif vtoy_check_mkinitcpio; then
+        echo 'mkinitcpio'; return
+    elif vtoy_check_dracut; then
+        echo 'dracut'; return
+    else
+        echo 'unknown'; return
     fi
 }
 
@@ -71,12 +56,13 @@ if ! [ -d ./distros ]; then
     exit 1
 fi
 
-os=$(vtoy_get_os_type)
+initrdtool=$(vtoy_get_initrdtool_type)
 
-if ! [ -f ./distros/$os/vtoy.sh ]; then
+if ! [ -f ./distros/$initrdtool/vtoy.sh ]; then
     echo 'Current OS is not supported!'
     exit 1
 fi
+
 
 #prepare vtoydump
 if uname -a | grep -Eq "x86_64|amd64"; then
@@ -89,15 +75,16 @@ fi
 
 chmod +x $vtdumpcmd $partxcmd
 
-. ./distros/$os/vtoy.sh 
+echo "Current system use $initrdtool as initramfs tool"
+. ./distros/$initrdtool/vtoy.sh 
 if [ $? -eq 0 ]; then
     sync
     echo ""
-    echo "vtoyboot process successfully finished ($os)."
+    echo "vtoyboot process successfully finished."
     echo ""
 else
     echo ""
-    echo "vtoyboot process failed, please check ($os)."
+    echo "vtoyboot process failed, please check."
     echo ""
     exit 1
 fi

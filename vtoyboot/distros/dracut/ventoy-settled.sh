@@ -24,6 +24,13 @@ if ! vtoydump > /dev/null 2>&1; then
     return
 fi
 
+#already done
+if dmsetup ls | grep -q ventoy; then
+    info 'ventoy already exist'
+    return
+fi
+
+
 vtoydump -L > /ventoy_table
 dmsetup create ventoy /ventoy_table
 

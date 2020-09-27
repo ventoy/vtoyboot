@@ -24,8 +24,8 @@ rm -f /usr/lib/initcpio/install/ventoy
 
 cp -a $vtdumpcmd /sbin/vtoydump
 cp -a $partxcmd  /sbin/vtoypartx
-cp -a ./distros/$os/ventoy-install.sh  /usr/lib/initcpio/install/ventoy
-cp -a ./distros/$os/ventoy-hook.sh  /usr/lib/initcpio/hooks/ventoy
+cp -a ./distros/$initrdtool/ventoy-install.sh  /usr/lib/initcpio/install/ventoy
+cp -a ./distros/$initrdtool/ventoy-hook.sh  /usr/lib/initcpio/hooks/ventoy
 
 echo "updating the initramfs, please wait ..."
 cp -a /etc/mkinitcpio.conf /etc/mkinitcpio.conf.bk

@@ -23,8 +23,8 @@ rm -f /etc/initramfs-tools/scripts/local-top/vtoy-local-top.sh
 
 cp -a $vtdumpcmd /sbin/vtoydump
 cp -a $partxcmd  /sbin/vtoypartx
-cp -a ./distros/$os/vtoy-hook.sh  /usr/share/initramfs-tools/hooks/
-cp -a ./distros/$os/vtoy-local-top.sh  /etc/initramfs-tools/scripts/local-top/
+cp -a ./distros/$initrdtool/vtoy-hook.sh  /usr/share/initramfs-tools/hooks/
+cp -a ./distros/$initrdtool/vtoy-local-top.sh  /etc/initramfs-tools/scripts/local-top/
 
 echo "updating the initramfs, please wait ..."
 update-initramfs -u

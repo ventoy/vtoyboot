@@ -21,6 +21,14 @@ build() {
     add_binary "vtoydump"
     add_binary "vtoypartx"
 
+    addon_drivers="usb-storage mptsas mptspi efivars"
+
+    for md in $addon_drivers; do
+        if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
+            add_module $md
+        fi
+    done
+
     add_runscript
 }
 
