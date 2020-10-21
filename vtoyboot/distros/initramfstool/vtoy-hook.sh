@@ -33,7 +33,7 @@ esac
 
 # Begin real processing below this line
 
-addon_drivers="usb-storage mptsas mptspi efivars"
+addon_drivers="usb-storage ehci-fsl ehci-hcd ehci-pci ehci-platform ohci-hcd ohci-pci ohci-platform uhci-hcd xhci-hcd xhci-pci xhci-plat-hcd vhci-hcd usbhid mptsas mptspi efivars"
 
 for md in $addon_drivers; do
     if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
