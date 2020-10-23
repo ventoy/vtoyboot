@@ -17,7 +17,7 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.1
+vtoy_version=1.0.2
 
 vtoy_get_initrdtool_type() {  
     . ./distros/initramfstool/check.sh
@@ -74,6 +74,10 @@ else
 fi
 
 chmod +x $vtdumpcmd $partxcmd
+
+for vsh in $(ls ./distros/$initrdtool/*.sh); do
+    chmod +x $vsh
+done
 
 echo "Current system use $initrdtool as initramfs tool"
 . ./distros/$initrdtool/vtoy.sh 
