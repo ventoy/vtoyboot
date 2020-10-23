@@ -32,15 +32,18 @@ cp -a $partxcmd /bin/vtoypartx
 cp -a ./distros/$initrdtool/module-setup.sh $vtmodpath/
 cp -a ./distros/$initrdtool/ventoy-settled.sh $vtmodpath/
 
-
-addon_drivers="usb-storage ehci-fsl ehci-hcd ehci-pci ehci-platform ohci-hcd ohci-pci ohci-platform uhci-hcd xhci-hcd xhci-pci xhci-plat-hcd vhci-hcd usbhid mptsas mptspi efivars"
-
-for md in $addon_drivers; do
-    if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
-        extdrivers="$extdrivers $md"
+for md in $(cat ./tools/vtoydrivers); do
+    if [ -n "$md" ]; then
+        if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
+            extdrivers="$extdrivers $md"
+        fi
     fi
 done
 
 echo "updating the initramfs, please wait ..."
 dracut -f --force-drivers "$extdrivers" --add "ventoy"
+
+#clean
+rm -f /bin/vtoydump /bin/vtoypartx
+rm -rf $vtmodpath
 

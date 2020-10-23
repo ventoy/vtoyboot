@@ -17,13 +17,18 @@
 # 
 #************************************************************************************
 
+vtoy_clean_env() {
+    rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoydrivers
+    rm -f /usr/lib/initcpio/hooks/ventoy
+    rm -f /usr/lib/initcpio/install/ventoy
+}
+
 rm -f /etc/mkinitcpio.conf.bk
-rm -f /sbin/vtoydump  /sbin/vtoypartx  
-rm -f /usr/lib/initcpio/hooks/ventoy
-rm -f /usr/lib/initcpio/install/ventoy
+vtoy_clean_env
 
 cp -a $vtdumpcmd /sbin/vtoydump
 cp -a $partxcmd  /sbin/vtoypartx
+cp -a ./tools/vtoydrivers /sbin/vtoydrivers
 cp -a ./distros/$initrdtool/ventoy-install.sh  /usr/lib/initcpio/install/ventoy
 cp -a ./distros/$initrdtool/ventoy-hook.sh  /usr/lib/initcpio/hooks/ventoy
 
@@ -43,4 +48,6 @@ mkinitcpio -P
 rm -f /etc/mkinitcpio.conf
 mv /etc/mkinitcpio.conf.bk /etc/mkinitcpio.conf
 
+#clean
+vtoy_clean_env
 
