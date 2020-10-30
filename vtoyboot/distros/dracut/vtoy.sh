@@ -23,7 +23,15 @@ else
     vtmodpath=/usr/lib/dracut/modules.d/99ventoy
 fi
 
+if [ -d /etc/dracut.conf.d ]; then
+    dracutConfPath=/etc/dracut.conf.d
+else
+    dracutConfPath=/usr/lib/dracut/dracut.conf.d
+fi
+
+
 rm -f /bin/vtoydump /bin/vtoypartx
+rm -f $dracutConfPath/ventoy.conf
 rm -rf $vtmodpath
 mkdir -p $vtmodpath
 
@@ -40,10 +48,13 @@ for md in $(cat ./tools/vtoydrivers); do
     fi
 done
 
+
+#generate dracut conf file
+cat >$dracutConfPath/ventoy.conf <<EOF
+add_dracutmodules+=" ventoy "
+force_drivers+=" $extdrivers "
+EOF
+
+
 echo "updating the initramfs, please wait ..."
-dracut -f --force-drivers "$extdrivers" --add "ventoy"
-
-#clean
-rm -f /bin/vtoydump /bin/vtoypartx
-rm -rf $vtmodpath
-
+dracut -f 

@@ -23,7 +23,6 @@ vtoy_clean_env() {
     rm -f /usr/lib/initcpio/install/ventoy
 }
 
-rm -f /etc/mkinitcpio.conf.bk
 vtoy_clean_env
 
 cp -a $vtdumpcmd /sbin/vtoydump
@@ -33,21 +32,14 @@ cp -a ./distros/$initrdtool/ventoy-install.sh  /usr/lib/initcpio/install/ventoy
 cp -a ./distros/$initrdtool/ventoy-hook.sh  /usr/lib/initcpio/hooks/ventoy
 
 echo "updating the initramfs, please wait ..."
-cp -a /etc/mkinitcpio.conf /etc/mkinitcpio.conf.bk
 
-if grep -q '^HOOKS=.*lvm' /etc/mkinitcpio.conf; then
-	exthook='ventoy'
-else
-	exthook='lvm2 ventoy'
+if ! grep -q '^HOOKS=.*ventoy' /etc/mkinitcpio.conf; then
+    if grep -q '^HOOKS=.*lvm' /etc/mkinitcpio.conf; then
+        exthook='ventoy'
+    else
+        exthook='lvm2 ventoy'
+    fi
+    sed "s/^HOOKS=\"\(.*\)\"/HOOKS=\"\1 $exthook\"/" -i /etc/mkinitcpio.conf
 fi
 
-sed "s/^HOOKS=\"\(.*\)\"/HOOKS=\"\1 $exthook\"/" -i /etc/mkinitcpio.conf
-
 mkinitcpio -P
-
-rm -f /etc/mkinitcpio.conf
-mv /etc/mkinitcpio.conf.bk /etc/mkinitcpio.conf
-
-#clean
-vtoy_clean_env
-

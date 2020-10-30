@@ -17,7 +17,7 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.3
+vtoy_version=1.0.4
 
 vtoy_get_initrdtool_type() {  
     . ./distros/initramfstool/check.sh

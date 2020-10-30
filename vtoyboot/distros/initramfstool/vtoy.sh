@@ -44,8 +44,6 @@ cp -a ./distros/$initrdtool/vtoy-local-top.sh  /etc/initramfs-tools/scripts/loca
 echo "updating the initramfs, please wait ..."
 update-initramfs -u
 
-#clean
-vtoy_clean_env
 
 #fixup 
 vtoy_fixup
