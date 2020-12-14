@@ -23,14 +23,29 @@ vtoy_clean_env() {
     rm -f /etc/initramfs-tools/scripts/local-top/vtoy-local-top.sh
 }
 
-vtoy_fixup() {
-    #bootx64.efi missing after kali installed
-    if [ -f /boot/efi/EFI/kali/grubx64.efi ]; then
-        if ! [ -f /boot/efi/EFI/boot/bootx64.efi ]; then
-            mkdir -p /boot/efi/EFI/boot
-            cp -a /boot/efi/EFI/kali/grubx64.efi /boot/efi/EFI/boot/bootx64.efi
-        fi
+vtoy_efi_fixup() {
+    if [ -d /boot/efi/EFI ]; then
+        for f in 'boot/bootx64.efi' 'boot/BOOTX64.efi' 'boot/BOOTX64.EFI' 'BOOT/bootx64.efi' 'BOOT/BOOTX64.efi' 'BOOT/BOOTX64.EFI'; do
+            if [ -f /boot/efi/EFI/$f ]; then
+                return
+            fi
+        done
     fi
+
+    Dirs=$(ls /boot/efi/EFI)
+    
+    if ! [ -d /boot/efi/EFI/boot ]; then
+        mkdir -p /boot/efi/EFI/boot
+    fi
+    
+    for d in $Dirs; do
+        for e in 'grubx64.efi' 'GRUBX64.EFI' 'bootx64.efi' 'BOOTX64.EFI'; do
+            if [ -f "/boot/efi/EFI/$d/$e" ]; then
+                cp -a "/boot/efi/EFI/$d/$e" /boot/efi/EFI/boot/bootx64.efi
+                return
+            fi
+        done        
+    done
 }
 
 vtoy_clean_env
@@ -45,6 +60,8 @@ echo "updating the initramfs, please wait ..."
 update-initramfs -u
 
 
-#fixup 
-vtoy_fixup
+#efi fixup 
+if [ -e /sys/firmware/efi ]; then
+    vtoy_efi_fixup
+fi
 
