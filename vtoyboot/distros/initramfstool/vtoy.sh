@@ -48,6 +48,8 @@ vtoy_efi_fixup() {
     done
 }
 
+. ./tools/efi_legacy_grub.sh
+
 vtoy_clean_env
 
 cp -a $vtdumpcmd /sbin/vtoydump
@@ -62,6 +64,13 @@ update-initramfs -u
 
 #efi fixup 
 if [ -e /sys/firmware/efi ]; then
+    if [ -e /dev/mapper/ventoy ]; then
+        echo "This is ventoy enviroment"
+    else
+        update_grub_config
+        install_legacy_bios_grub
+    fi
+    
     vtoy_efi_fixup
 fi
 

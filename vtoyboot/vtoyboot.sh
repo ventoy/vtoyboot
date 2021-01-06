@@ -17,7 +17,7 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.6
+vtoy_version=1.0.7
 
 vtoy_get_initrdtool_type() {  
     . ./distros/initramfstool/check.sh
@@ -68,15 +68,18 @@ fi
 if uname -a | grep -Eq "x86_64|amd64"; then
     vtdumpcmd=./tools/vtoydump64
     partxcmd=./tools/vtoypartx64
+    vtcheckcmd=./tools/vtoycheck64
 elif uname -a | grep -Eq "aarch64|arm64"; then
     vtdumpcmd=./tools/vtoydumpaa64
     partxcmd=./tools/vtoypartxaa64
+    vtcheckcmd=./tools/vtoycheckaa64
 else
     vtdumpcmd=./tools/vtoydump32
     partxcmd=./tools/vtoypartx32
+    vtcheckcmd=./tools/vtoycheck32
 fi
 
-chmod +x $vtdumpcmd $partxcmd
+chmod +x $vtdumpcmd $partxcmd $vtcheckcmd
 
 for vsh in $(ls ./distros/$initrdtool/*.sh); do
     chmod +x $vsh

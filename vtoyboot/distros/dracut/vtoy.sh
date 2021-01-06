@@ -17,6 +17,8 @@
 # 
 #************************************************************************************
 
+. ./tools/efi_legacy_grub.sh
+
 if [ -e /lib/dracut/dracut-install ]; then
     vtmodpath=/lib/dracut/modules.d/99ventoy
 else
@@ -58,3 +60,22 @@ EOF
 
 echo "updating the initramfs, please wait ..."
 dracut -f 
+
+if [ -e /sys/firmware/efi ]; then
+    if [ -e /dev/mapper/ventoy ]; then
+        echo "This is ventoy enviroment"
+    else
+        update_grub_config
+        install_legacy_bios_grub
+    fi
+    
+    if [ -d /boot/EFI/EFI/mageia ]; then
+        if ! [ -d /boot/EFI/EFI/boot ]; then
+            mkdir -p /boot/EFI/EFI/boot
+            if [ -f /boot/EFI/EFI/mageia/grubx64.efi ]; then
+                cp -a /boot/EFI/EFI/mageia/grubx64.efi /boot/EFI/EFI/boot/bootx64.efi
+            fi
+        fi
+    fi
+    
+fi

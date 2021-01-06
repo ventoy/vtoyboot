@@ -1,0 +1,3 @@
+search -f XXX/YYY -s root
+set prefix=($root)XXX
+configfile $prefix/YYY

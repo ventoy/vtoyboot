@@ -17,6 +17,8 @@
 # 
 #************************************************************************************
 
+. ./tools/efi_legacy_grub.sh
+
 vtoy_clean_env() {
     rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoydrivers
     rm -f /usr/lib/initcpio/hooks/ventoy
@@ -43,3 +45,12 @@ if ! grep -q '^HOOKS=.*ventoy' /etc/mkinitcpio.conf; then
 fi
 
 mkinitcpio -P
+
+if [ -e /sys/firmware/efi ]; then
+    if [ -e /dev/mapper/ventoy ]; then
+        echo "This is ventoy enviroment"
+    else
+        update_grub_config
+        install_legacy_bios_grub
+    fi
+fi
