@@ -20,7 +20,7 @@
 vtoy_check_mkinitcpio() {
     if which mkinitcpio >/dev/null 2>&1; then
         
-		for vtfile in '/etc/mkinitcpio.conf' '/usr/lib/initcpio/hooks/lvm2' '/usr/lib/initcpio/install/lvm2'; do
+		for vtfile in '/etc/mkinitcpio.conf' '/usr/lib/initcpio/install/lvm2'; do
 			if ! [ -f $vtfile ]; then
 				[ -z "1" ]; return
 			fi

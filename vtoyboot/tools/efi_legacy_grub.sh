@@ -143,6 +143,16 @@ install_legacy_bios_grub() {
     echo PREFIX=$PREFIX CFG=$CFG DISK=$DISK
     echo MOD_PATH=$MOD_PATH
 
+    chkPrefix=$PREFIX
+    while [ -n "$chkPrefix" ]; do
+        if mountpoint -q "$chkPrefix"; then
+            PREFIX=${MOD_PATH#$chkPrefix}
+            echo "/$chkPrefix is mountpoint PREFIX=$PREFIX"
+            break
+        fi
+        chkPrefix=${chkPrefix%/*}
+    done
+
     if grep -q 'linuxefi' $MOD_PATH/$CFG; then
         echo "update grub.cfg ..."
         cp -a ./tools/01_linuxefi /etc/grub.d/
