@@ -147,7 +147,7 @@ install_legacy_bios_grub() {
     while [ -n "$chkPrefix" ]; do
         if mountpoint -q "$chkPrefix"; then
             PREFIX=${MOD_PATH#$chkPrefix}
-            echo "/$chkPrefix is mountpoint PREFIX=$PREFIX"
+            echo "$chkPrefix is mountpoint PREFIX=$PREFIX"
             break
         fi
         chkPrefix=${chkPrefix%/*}

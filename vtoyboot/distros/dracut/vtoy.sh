@@ -53,7 +53,7 @@ done
 
 #generate dracut conf file
 cat >$dracutConfPath/ventoy.conf <<EOF
-add_dracutmodules+=" ventoy "
+add_dracutmodules+=" ventoy dm "
 force_drivers+=" $extdrivers "
 EOF
 
