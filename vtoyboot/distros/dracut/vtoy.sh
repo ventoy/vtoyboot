@@ -53,13 +53,13 @@ done
 
 #generate dracut conf file
 cat >$dracutConfPath/ventoy.conf <<EOF
-add_dracutmodules+=" ventoy dm "
+add_dracutmodules+=" ventoy "
 force_drivers+=" $extdrivers "
 EOF
 
 
 echo "updating the initramfs, please wait ..."
-dracut -f 
+dracut -f --no-hostonly
 
 if [ -e /sys/firmware/efi ]; then
     if [ -e /dev/mapper/ventoy ]; then
