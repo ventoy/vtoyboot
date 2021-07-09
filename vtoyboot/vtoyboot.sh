@@ -17,7 +17,15 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.13
+vtoy_version=1.0.15
+
+if echo "$*" | grep -q __vtoyloop__; then
+    :
+else
+    if readlink /proc/$$/exe | grep -q dash; then
+        exec /bin/bash $0 $* __vtoyloop__
+    fi
+fi
 
 vtoy_get_initrdtool_type() {  
     . ./distros/initramfstool/check.sh
@@ -56,6 +64,12 @@ if ! [ -d ./distros ]; then
     exit 1
 fi
 
+if ls -1 /dev | grep -q '[svh]db$'; then
+    echo "More than one disks found. Currently only one disk is supported."
+    echo ""
+    exit 1
+fi
+
 initrdtool=$(vtoy_get_initrdtool_type)
 
 if ! [ -f ./distros/$initrdtool/vtoy.sh ]; then
@@ -86,7 +100,7 @@ for vsh in $(ls ./distros/$initrdtool/*.sh); do
 done
 
 echo "Current system use $initrdtool as initramfs tool"
-. ./distros/$initrdtool/vtoy.sh 
+. ./distros/$initrdtool/vtoy.sh
 if [ $? -eq 0 ]; then
     sync
     echo ""

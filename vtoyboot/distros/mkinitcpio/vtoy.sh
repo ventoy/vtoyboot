@@ -51,6 +51,20 @@ fi
 
 mkinitcpio -P
 
+disable_grub_os_probe
+
+#wrapper grub-probe
+echo "grub mkconfig ..."
+PROBE_PATH=$(find_grub_probe_path)
+MKCONFIG_PATH=$(find_grub_mkconfig_path)
+echo "PROBE_PATH=$PROBE_PATH MKCONFIG_PATH=$MKCONFIG_PATH"
+
+if [ -e "$PROBE_PATH" -a -e "$MKCONFIG_PATH" ]; then
+    wrapper_grub_probe $PROBE_PATH
+    $MKCONFIG_PATH > /dev/null 2>&1
+fi
+
+
 if [ -e /sys/firmware/efi ]; then
     if [ -e /dev/mapper/ventoy ]; then
         echo "This is ventoy enviroment"

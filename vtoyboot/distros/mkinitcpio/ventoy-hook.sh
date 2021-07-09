@@ -31,13 +31,32 @@ vtoy_wait_for_device() {
 }
 
 vtoy_device_mapper_proc() {
+    #flush multipath before dmsetup
+    multipath -F > /dev/null 2>&1
+
     vtoydump -L > /ventoy_table
-    dmsetup create ventoy /ventoy_table
+    if dmsetup create ventoy /ventoy_table; then
+        :
+    else
+        sleep 3
+        multipath -F > /dev/null 2>&1
+        dmsetup create ventoy /ventoy_table
+    fi
 
     DEVDM=/dev/mapper/ventoy
 
+    loop=0
     while ! [ -e $DEVDM ]; do
         sleep 0.5
+        let loop+=1
+        if [ $loop -gt 10 ]; then
+            echo "Waiting for ventoy device ..." > /dev/console
+        fi
+        
+        if [ $loop -gt 10 -a $loop -lt 15 ]; then
+            multipath -F > /dev/null 2>&1
+            dmsetup create ventoy /ventoy_table
+        fi
     done
 
     for ID in $(vtoypartx $DEVDM -oNR | grep -v NR); do
@@ -53,7 +72,17 @@ vtoy_device_mapper_proc() {
 }
 
 run_hook() {
-	
+    #check for efivarfs
+    if [ -e /sys/firmware/efi ]; then
+        if grep -q efivar /proc/mounts; then
+            :
+        else
+            if [ -e /sys/firmware/efi/efivars ]; then
+                mount -t efivarfs efivarfs /sys/firmware/efi/efivars  >/dev/null 2>&1
+            fi
+        fi
+    fi
+    
 	if vtoydump -c >/dev/null 2>/dev/null; then
 		vtoy_wait_for_device
 		if vtoydump > /dev/null 2>&1; then

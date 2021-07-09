@@ -61,6 +61,31 @@ EOF
 echo "updating the initramfs, please wait ..."
 dracut -f --no-hostonly
 
+kv=$(uname -r)
+for k in $(ls /lib/modules); do
+    if [ "$k" != "$kv" -a -d /lib/modules/$k/kernel/drivers/md ]; then
+        if ls /lib/modules/$k/kernel/drivers/md/ | grep -q 'dm-mod'; then
+            echo "updating initramfs for $k , please wait ..."
+            dracut -f --no-hostonly --kver $k
+        fi
+    fi
+done
+
+
+disable_grub_os_probe
+
+#wrapper grub-probe
+echo "grub mkconfig ..."
+PROBE_PATH=$(find_grub_probe_path)
+MKCONFIG_PATH=$(find_grub_mkconfig_path)
+echo "PROBE_PATH=$PROBE_PATH MKCONFIG_PATH=$MKCONFIG_PATH"
+
+if [ -e "$PROBE_PATH" -a -e "$MKCONFIG_PATH" ]; then
+    wrapper_grub_probe $PROBE_PATH
+    $MKCONFIG_PATH > /dev/null 2>&1
+fi
+
+
 if [ -e /sys/firmware/efi ]; then
     if [ -e /dev/mapper/ventoy ]; then
         echo "This is ventoy enviroment"

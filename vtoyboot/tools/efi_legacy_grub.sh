@@ -1,13 +1,63 @@
 #!/bin/sh
 
+
+disable_grub_os_probe() {
+    for probe in 30_os-prober; do
+        probe_cfg=/etc/grub.d/$probe
+        if [ -f $probe_cfg ]; then
+            if grep -q 'VTOYBOOT_FLAG' $probe_cfg; then
+                :
+            else
+                sed "1a#VTOYBOOT_FLAG" -i $probe_cfg
+                sed "1aexit 0" -i $probe_cfg
+            fi
+        fi
+    done
+}
+
+find_grub_probe_path() {
+    if which grub-probe >/dev/null 2>&1; then
+        which grub-probe
+    elif which grub2-probe >/dev/null 2>&1; then
+        which grub2-probe
+    else
+        echo "XXX"
+    fi
+}
+
+find_grub_mkconfig_path() {
+    if which grub-mkconfig >/dev/null 2>&1; then
+        which grub-mkconfig
+    elif which grub2-mkconfig >/dev/null 2>&1; then
+        which grub2-mkconfig
+    else
+        echo "XXX"
+    fi
+}
+
+
 update_grub_config() {
     if update-grub -V > /dev/null 2>&1; then
         GRUB_UPDATE=update-grub
     elif update-grub2 -V > /dev/null 2>&1; then
         GRUB_UPDATE=update-grub2
     else
-        echo "update-grub no need"
-        return
+        vgrubcfg=""
+        mkconfig=$(find_grub_mkconfig_path)
+
+        for t in /boot/grub/grub.cfg /boot/grub2/grub.cfg; do
+            if grep -q 'BEGIN' $t 2>/dev/null; then
+                vgrubcfg=$t
+                break
+            fi
+        done
+
+        if [ -f $mkconfig -a -n "$vgrubcfg" ]; then
+            GRUB_UPDATE="$mkconfig -o $vgrubcfg"
+        else
+            echo "update-grub no need"
+            return
+        fi
     fi
 
     UPDATE=0
@@ -32,10 +82,13 @@ update_grub_config() {
     fi
 }
 
-print_bios_grub_warning() {
-    echo "[WARNING] ##################################################################"
-    echo "[WARNING] #### This vhd/vdi/raw file will only be bootable in UEFI mode ####"
-    echo "[WARNING] ##################################################################"
+print_bios_grub_warning() {    
+    echo -e "\033[33m[WARNING] ################################################################## \033[0m"
+    for i in 0 1 2 3 4 5 6 7 8 9; do
+        echo -e "\033[33m[WARNING] !!!! This vhd/vdi/raw file will only be bootable in UEFI mode !!!! \033[0m"
+    done
+    echo -e "\033[33m[WARNING] ################################################################## \033[0m"
+    sleep 3
 }
 
 install_legacy_bios_grub() {
@@ -193,3 +246,14 @@ install_legacy_bios_grub() {
     rm -f ./embed.cfg
     rm -f ./core.img
 }
+
+wrapper_grub_probe() {
+    if [ -e "${1}-bk" ]; then
+        rm -f "$1"
+        mv "${1}-bk" "$1"
+    fi
+
+    cp -a "$1" "${1}-bk"
+    cp -a ./tools/grub-probe.sh "$1"
+}
+
