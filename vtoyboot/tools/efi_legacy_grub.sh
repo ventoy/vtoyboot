@@ -35,6 +35,24 @@ find_grub_mkconfig_path() {
     fi
 }
 
+find_grub_config_path() {
+    for i in grub.cfg grub2.cfg grub-efi.cfg grub2-efi.cfg; do
+        if readlink -f -e /etc/$i > /dev/null; then
+            cfgfile=$(readlink -f -e /etc/$i)
+            echo $cfgfile
+            return
+        fi
+    done
+    
+    for t in /boot/grub/grub.cfg /boot/grub2/grub.cfg; do
+        if grep -q 'BEGIN' $t 2>/dev/null; then
+            echo $t
+            return
+        fi
+    done
+    
+    echo "xx"
+}
 
 update_grub_config() {
     if update-grub -V > /dev/null 2>&1; then
@@ -42,17 +60,10 @@ update_grub_config() {
     elif update-grub2 -V > /dev/null 2>&1; then
         GRUB_UPDATE=update-grub2
     else
-        vgrubcfg=""
+        vgrubcfg=$(find_grub_config_path)
         mkconfig=$(find_grub_mkconfig_path)
 
-        for t in /boot/grub/grub.cfg /boot/grub2/grub.cfg; do
-            if grep -q 'BEGIN' $t 2>/dev/null; then
-                vgrubcfg=$t
-                break
-            fi
-        done
-
-        if [ -f $mkconfig -a -n "$vgrubcfg" ]; then
+        if [ -f $mkconfig -a -f $vgrubcfg ]; then
             GRUB_UPDATE="$mkconfig -o $vgrubcfg"
         else
             echo "update-grub no need"
@@ -73,8 +84,6 @@ update_grub_config() {
             sed 's/GRUB_TIMEOUT_STYLE=hidden/GRUB_TIMEOUT_STYLE=menu/' -i /etc/default/grub
         fi
     fi
-    
-    
     
     if [ $UPDATE -eq 1 ]; then
         echo "update grub config"
@@ -249,11 +258,16 @@ install_legacy_bios_grub() {
 
 wrapper_grub_probe() {
     if [ -e "${1}-bk" ]; then
-        rm -f "$1"
-        mv "${1}-bk" "$1"
+        if grep -q '#!' "$1"; then
+            rm -f "$1"
+            mv "${1}-bk" "$1"
+        else
+            rm -f "${1}-bk"
+        fi
     fi
 
     cp -a "$1" "${1}-bk"
+    rm -f "$1"
     cp -a ./tools/grub-probe.sh "$1"
 }
 

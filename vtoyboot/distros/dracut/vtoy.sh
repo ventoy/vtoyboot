@@ -63,11 +63,9 @@ dracut -f --no-hostonly
 
 kv=$(uname -r)
 for k in $(ls /lib/modules); do
-    if [ "$k" != "$kv" -a -d /lib/modules/$k/kernel/drivers/md ]; then
-        if ls /lib/modules/$k/kernel/drivers/md/ | grep -q 'dm-mod'; then
-            echo "updating initramfs for $k , please wait ..."
-            dracut -f --no-hostonly --kver $k
-        fi
+    if [ "$k" != "$kv" ]; then
+        echo "updating initramfs for $k please wait ..."
+        dracut -f --no-hostonly --kver $k
     fi
 done
 
@@ -82,7 +80,15 @@ echo "PROBE_PATH=$PROBE_PATH MKCONFIG_PATH=$MKCONFIG_PATH"
 
 if [ -e "$PROBE_PATH" -a -e "$MKCONFIG_PATH" ]; then
     wrapper_grub_probe $PROBE_PATH
-    $MKCONFIG_PATH > /dev/null 2>&1
+    
+    GRUB_CFG_PATH=$(find_grub_config_path)
+    if [ -f "$GRUB_CFG_PATH" ]; then
+        echo "$MKCONFIG_PATH -o $GRUB_CFG_PATH"
+        $MKCONFIG_PATH -o $GRUB_CFG_PATH
+    else
+        echo "$MKCONFIG_PATH null"
+        $MKCONFIG_PATH > /dev/null 2>&1
+    fi
 fi
 
 
