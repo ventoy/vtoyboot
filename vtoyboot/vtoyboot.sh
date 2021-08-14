@@ -17,7 +17,7 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.17
+vtoy_version=1.0.18
 
 if echo "$*" | grep -q __vtoyloop__; then
     :
@@ -64,10 +64,14 @@ if ! [ -d ./distros ]; then
     exit 1
 fi
 
-if ls -1 /dev | grep -q '[svh]db$'; then
-    echo "More than one disks found. Currently only one disk is supported."
-    echo ""
-    exit 1
+if [ -e /dev/mapper/ventoy ]; then
+    :
+else    
+    if ls -1 /dev | grep -q '[svh]db$'; then
+        echo "More than one disks found. Currently only one disk is supported."
+        echo ""
+        exit 1
+    fi
 fi
 
 initrdtool=$(vtoy_get_initrdtool_type)

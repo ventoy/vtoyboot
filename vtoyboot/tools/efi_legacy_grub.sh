@@ -269,5 +269,8 @@ wrapper_grub_probe() {
     cp -a "$1" "${1}-bk"
     rm -f "$1"
     cp -a ./tools/grub-probe.sh "$1"
+    
+    chmod +x "$1"
+    chmod +x "${1}-bk"
 }
 
