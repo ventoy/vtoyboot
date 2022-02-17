@@ -42,6 +42,16 @@ cp -a $partxcmd /bin/vtoypartx
 cp -a ./distros/$initrdtool/module-setup.sh $vtmodpath/
 cp -a ./distros/$initrdtool/ventoy-settled.sh $vtmodpath/
 
+#early centos release doesn't have require_binaries
+if [ -e $vtmodpath/../../dracut-functions ]; then
+    if grep -q require_binaries $vtmodpath/../../dracut-functions; then
+        :
+    else
+        sed "/require_binaries/d" -i $vtmodpath/module-setup.sh
+    fi
+fi
+
+
 for md in $(cat ./tools/vtoydrivers); do
     if [ -n "$md" ]; then
         if modinfo -n $md 2>/dev/null | grep -q '\.ko'; then
