@@ -17,6 +17,11 @@
 # 
 #************************************************************************************
 
+###########################
+###########################
+#AUTO_INSERT_COMMON_FUNC
+
+
 vtoy_wait_for_device() {
     while ! vtoydump > /dev/null 2>&1; do
         sleep 0.5
@@ -72,20 +77,13 @@ case $1 in
        ;;
 esac
 
-
 #check for efivarfs
-if [ -e /sys/firmware/efi ]; then
-    if grep -q efivar /proc/mounts; then
-        :
-    else
-        if [ -e /sys/firmware/efi/efivars ]; then
-            mount -t efivarfs efivarfs /sys/firmware/efi/efivars >/dev/null 2>&1
-        fi
-    fi
-fi
+ventoy_check_efivars
 
 if vtoydump -c > /dev/null 2>&1; then
     vtoy_wait_for_device
+    ventoy_dm_patch_proc_begin
     vtoy_device_mapper_proc
+    ventoy_dm_patch_proc_end
 fi
 

@@ -14,7 +14,7 @@ depends() {
 
 
 install() {
-    inst_multiple sed grep awk vtoydump vtoypartx
+    inst_multiple sed grep awk dd sort head find basename xzcat zcat vtoydump vtoypartx vtoydmpatch vtoytool
     inst_hook initqueue/settled 99 "$moddir/ventoy-settled.sh"
     dracut_need_initqueue
 }

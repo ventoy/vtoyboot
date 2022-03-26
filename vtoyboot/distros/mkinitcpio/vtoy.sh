@@ -20,7 +20,7 @@
 . ./tools/efi_legacy_grub.sh
 
 vtoy_clean_env() {
-    rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoydrivers
+    rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoytool  /sbin/vtoydmpatch  /sbin/vtoydrivers
     rm -f /usr/lib/initcpio/hooks/ventoy
     rm -f /usr/lib/initcpio/install/ventoy
 }
@@ -29,6 +29,8 @@ vtoy_clean_env
 
 cp -a $vtdumpcmd /sbin/vtoydump
 cp -a $partxcmd  /sbin/vtoypartx
+cp -a $vtoytool  /sbin/vtoytool
+cat /sbin/vtoydump $dmpatchko > /sbin/vtoydmpatch
 cp -a ./tools/vtoydrivers /sbin/vtoydrivers
 cp -a ./distros/$initrdtool/ventoy-install.sh  /usr/lib/initcpio/install/ventoy
 cp -a ./distros/$initrdtool/ventoy-hook.sh  /usr/lib/initcpio/hooks/ventoy
@@ -81,5 +83,11 @@ if [ -e /sys/firmware/efi ]; then
     else
         update_grub_config
         install_legacy_bios_grub
+    fi
+    
+    if [ "$1" = "-s" ]; then
+        recover_shim_efi
+    else
+        replace_shim_efi
     fi
 fi

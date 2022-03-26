@@ -274,3 +274,67 @@ wrapper_grub_probe() {
     chmod +x "${1}-bk"
 }
 
+replace_shim_efi() {
+    echo "replace shim efi ..."
+    if [ ! -d /boot/efi/EFI ]; then
+        return
+    fi
+    
+    vCnt=$(find /boot/efi/EFI -type f | grep -i /efi/boot/bootx64.efi | wc -l)
+    if [ $vCnt -ne 1 ]; then
+        echo "bootx64.efi no need $vCnt"
+        return
+    fi    
+    vBOOTX64=$(find /boot/efi/EFI -type f | grep -i /efi/boot/bootx64.efi)
+    
+    vCnt=$(find /boot/efi/EFI -type f | grep -i shimx64.efi | wc -l)
+    if [ $vCnt -ne 1 ]; then
+        echo "shimx64.efi no need $vCnt"
+        return
+    fi    
+    vSHIMX64=$(find /boot/efi/EFI -type f | grep -i shimx64.efi)
+    
+    vCnt=$(find /boot/efi/EFI -type f | grep -i grubx64.efi | wc -l)
+    if [ $vCnt -ne 1 ]; then
+        echo "grubx64.efi no need $vCnt"
+        return
+    fi    
+    vGRUBX64=$(find /boot/efi/EFI -type f | grep -i grubx64.efi)
+    
+    vMD51=$(md5sum $vBOOTX64 | awk '{print $1}')
+    vMD52=$(md5sum $vSHIMX64 | awk '{print $1}')
+    if [ "$vMD51" != "$vMD52" ]; then
+        echo "bootx64 shimx64 not equal"
+        echo "$vMD51"
+        echo "$vMD52"
+        return
+    fi
+    
+    echo "BOOT=$vBOOTX64"
+    echo "GRUB=$vGRUBX64"
+    mv $vBOOTX64 ${vBOOTX64}_VTBK
+    cp $vGRUBX64 $vBOOTX64
+}
+
+recover_shim_efi() {
+    echo "recover shim efi ..."
+    if [ ! -d /boot/efi/EFI ]; then
+        return
+    fi
+    
+    vVTBKFILE=$(find /boot/efi/EFI -type f | grep -i '_VTBK$')
+    if [ -z "$vVTBKFILE" ]; then
+        echo "no backup file found, no need."
+        return
+    fi
+    
+    if [ -f "$vVTBKFILE" ]; then
+        vVTRAWFILE=$(echo "$vVTBKFILE" | sed "s/_VTBK//")
+        if [ -f "$vVTRAWFILE" ]; then
+            rm -f "$vVTRAWFILE"
+            echo "BACK=$vVTRAWFILE"
+            echo "BOOT=$vVTBKFILE"
+            mv "$vVTBKFILE" "$vVTRAWFILE"
+        fi
+    fi    
+}

@@ -17,7 +17,7 @@
 # 
 #************************************************************************************
 
-vtoy_version=1.0.19
+vtoy_version=1.0.20
 
 if echo "$*" | grep -q __vtoyloop__; then
     :
@@ -87,14 +87,20 @@ if uname -a | grep -Eq "x86_64|amd64"; then
     vtdumpcmd=./tools/vtoydump64
     partxcmd=./tools/vtoypartx64
     vtcheckcmd=./tools/vtoycheck64
+    vtoytool=./tools/vtoytool_64
+    dmpatchko=./tools/dm_patch_64.ko
 elif uname -a | grep -Eq "aarch64|arm64"; then
     vtdumpcmd=./tools/vtoydumpaa64
     partxcmd=./tools/vtoypartxaa64
     vtcheckcmd=./tools/vtoycheckaa64
+    vtoytool=./tools/vtoytool_aa64
+    dmpatchko=./tools/dm_patch_64.ko
 else
     vtdumpcmd=./tools/vtoydump32
     partxcmd=./tools/vtoypartx32
     vtcheckcmd=./tools/vtoycheck32
+    vtoytool=./tools/vtoytool_32
+    dmpatchko=./tools/dm_patch_32.ko
 fi
 
 chmod +x $vtdumpcmd $partxcmd $vtcheckcmd
@@ -104,7 +110,7 @@ for vsh in $(ls ./distros/$initrdtool/*.sh); do
 done
 
 echo "Current system use $initrdtool as initramfs tool"
-. ./distros/$initrdtool/vtoy.sh
+. ./distros/$initrdtool/vtoy.sh "$@"
 if [ $? -eq 0 ]; then
     sync
     echo ""

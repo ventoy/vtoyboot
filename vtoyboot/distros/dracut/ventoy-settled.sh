@@ -19,16 +19,12 @@
 
 type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
 
+###########################
+###########################
+#AUTO_INSERT_COMMON_FUNC
+
 #check for efivarfs
-if [ -e /sys/firmware/efi ]; then
-    if grep -q efivar /proc/mounts; then
-        :
-    else
-        if [ -e /sys/firmware/efi/efivars ]; then
-            mount -t efivarfs efivarfs /sys/firmware/efi/efivars  >/dev/null 2>&1
-        fi
-    fi
-fi
+ventoy_check_efivars
 
 if ! vtoydump > /dev/null 2>&1; then
     info 'vtoydump failed'
@@ -40,6 +36,8 @@ if dmsetup ls | grep -q ventoy; then
     info 'ventoy already exist'
     return
 fi
+
+ventoy_dm_patch_proc_begin
 
 #flush multipath before dmsetup
 multipath -F > /dev/null 2>&1
@@ -79,3 +77,5 @@ done
 
 rm -f /ventoy_table
 rm -f /ventoy_part_table
+
+ventoy_dm_patch_proc_end

@@ -18,7 +18,7 @@
 #************************************************************************************
 
 vtoy_clean_env() {
-    rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoydrivers
+    rm -f /sbin/vtoydump  /sbin/vtoypartx  /sbin/vtoytool  /sbin/vtoydmpatch  /sbin/vtoydrivers
     rm -f /usr/share/initramfs-tools/hooks/vtoy-hook.sh  
     rm -f /etc/initramfs-tools/scripts/local-top/vtoy-local-top.sh
 }
@@ -54,6 +54,8 @@ vtoy_clean_env
 
 cp -a $vtdumpcmd /sbin/vtoydump
 cp -a $partxcmd  /sbin/vtoypartx
+cp -a $vtoytool  /sbin/vtoytool
+cat /sbin/vtoydump $dmpatchko > /sbin/vtoydmpatch
 cp -a ./tools/vtoydrivers /sbin/vtoydrivers
 cp -a ./distros/$initrdtool/vtoy-hook.sh  /usr/share/initramfs-tools/hooks/
 cp -a ./distros/$initrdtool/vtoy-local-top.sh  /etc/initramfs-tools/scripts/local-top/
@@ -90,6 +92,12 @@ if [ -e /sys/firmware/efi ]; then
     else
         update_grub_config
         install_legacy_bios_grub
+    fi
+    
+    if [ "$1" = "-s" ]; then
+        recover_shim_efi
+    else
+        replace_shim_efi
     fi
     
     vtoy_efi_fixup

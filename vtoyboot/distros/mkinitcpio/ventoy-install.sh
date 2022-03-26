@@ -18,8 +18,17 @@
 #************************************************************************************
 
 build() {
+    add_binary "dd"
+    add_binary "sort"
+    add_binary "head"
+    add_binary "find"
+    add_binary "xzcat"
+    add_binary "zcat"
+    add_binary "basename"
     add_binary "vtoydump"
     add_binary "vtoypartx"
+    add_binary "vtoydmpatch"
+    add_binary "vtoytool"
 
     for md in $(cat /sbin/vtoydrivers); do
         if [ -n "$md" ]; then

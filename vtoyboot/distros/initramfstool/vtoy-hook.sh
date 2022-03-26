@@ -41,5 +41,16 @@ for md in $(cat /sbin/vtoydrivers); do
     fi
 done
 
-copy_exec /sbin/vtoypartx /sbin
-copy_exec /sbin/vtoydump  /sbin
+for ef in dd sort head find basename xzcat zcat; do
+    for vp in /bin /sbin /usr/bin /usr/sbin; do
+        if [ -f $vp/$ef ]; then
+            copy_exec $vp/$ef /sbin
+            break
+        fi
+    done
+done
+
+copy_exec /sbin/vtoytool    /sbin
+copy_exec /sbin/vtoydmpatch /sbin
+copy_exec /sbin/vtoypartx   /sbin
+copy_exec /sbin/vtoydump    /sbin
