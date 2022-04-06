@@ -48,8 +48,13 @@ ventoy_do_dm_patch() {
         return
     fi
     
-    cat /proc/kallsyms | sort > /tmp/kallsyms
+    if ! grep -m1 -q dm_get_table_device /proc/kallsyms; then
+        ventoy_log "modprobe dm_mod"
+        modprobe dm_mod >>/tmp/vtoy.log 2>&1
+    fi
     
+    cat /proc/kallsyms | sort > /tmp/kallsyms
+
     vtLine=$(vtoytool vtoyksym dm_get_table_device /tmp/kallsyms)
     get_addr=$(echo $vtLine | awk '{print $1}')
     get_size=$(echo $vtLine | awk '{print $2}')
