@@ -156,7 +156,7 @@ ventoy_do_dm_patch() {
     
     #step2: fill parameters
     vtPgsize=$(vtoytool vtoyksym -p)
-    vtoytool vtoykmod -f /tmp/dm_patch.ko $vtPgsize 0x$printk_addr 0x$ro_addr 0x$rw_addr $get_addr $get_size $put_addr $put_size 0x$kprobe_reg_addr 0x$kprobe_unreg_addr $vtDebug >>/tmp/vtoy.log 2>&1
+    vtoytool vtoykmod -f /tmp/dm_patch.ko $vtPgsize 0x$printk_addr 0x$ro_addr 0x$rw_addr $get_addr $get_size $put_addr $put_size 0x$kprobe_reg_addr 0x$kprobe_unreg_addr $vtKv $vtDebug >>/tmp/vtoy.log 2>&1
 
     ventoy_check_insmod
     insmod /tmp/dm_patch.ko >>/tmp/vtoy.log 2>&1
