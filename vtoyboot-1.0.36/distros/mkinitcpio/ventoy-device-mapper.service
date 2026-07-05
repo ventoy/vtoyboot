@@ -1,0 +1,15 @@
+[Unit]
+Description=Ventoy Device Mapper Setup
+DefaultDependencies=no
+Wants=systemd-udevd.service
+After=systemd-udevd.service
+Before=initrd-root-device.target
+Before=sysroot.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/initcpio/ventoy-device-mapper
+
+[Install]
+WantedBy=initrd.target

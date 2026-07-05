@@ -1,0 +1,143 @@
+#!/usr/bin/ash
+# Ventoy Device Mapper Script for systemd initrd
+# This script creates device-mapper devices for Ventoy virtual disks
+
+ventoy_check_efivars() {
+    if [ -e /sys/firmware/efi ]; then
+        if grep -q efivar /proc/mounts; then
+            :
+        else
+            if [ -e /sys/firmware/efi/efivars ]; then
+                mount -t efivarfs efivarfs /sys/firmware/efi/efivars >/dev/null 2>&1
+            fi
+        fi
+    fi
+}
+
+ventoy_log() {
+    echo "$@" >> /tmp/vtoy.log
+    echo "$@"
+}
+
+ventoy_dm_create_ventoy() {
+    dmsetup create ventoy /ventoy_table || return 1
+
+    RAWDISKNAME=$(head -n1 /ventoy_table | awk '{print $4}')
+    RAWDISKSHORT=${RAWDISKNAME#/dev/}
+
+    if [ -f /sys/class/block/$RAWDISKSHORT/size ]; then
+        RAWDISKSECS=$(cat /sys/class/block/$RAWDISKSHORT/size)
+        echo "0 $RAWDISKSECS linear $RAWDISKNAME 0" > /ventoy_raw_table
+        dmsetup create $RAWDISKSHORT /ventoy_raw_table
+    fi
+
+    return 0
+}
+
+vtoy_wait_for_device() {
+    i=100
+
+    while [ $i -gt 0 ]; do
+        if vtoydump > /dev/null 2>&1; then
+            break
+        else
+            sleep 0.2
+        fi
+        i=$((i - 1))
+    done
+}
+
+vtoy_device_mapper_proc() {
+    ventoy_log "Starting Ventoy device mapper..."
+
+    # Flush multipath before dmsetup
+    if which multipath >/dev/null 2>&1; then
+        multipath -F > /dev/null 2>&1
+    fi
+
+    vtoydump -L > /ventoy_table || {
+        ventoy_log "ERROR: vtoydump -L failed"
+        return 1
+    }
+
+    if ventoy_dm_create_ventoy; then
+        ventoy_log "Device mapper created successfully"
+    else
+        ventoy_log "First attempt failed, retrying..."
+        sleep 3
+        if which multipath >/dev/null 2>&1; then
+            multipath -F > /dev/null 2>&1
+        fi
+        ventoy_dm_create_ventoy || {
+            ventoy_log "ERROR: Failed to create device mapper"
+            return 1
+        }
+    fi
+
+    DEVDM=/dev/mapper/ventoy
+
+    loop=0
+    while [ ! -e $DEVDM ]; do
+        sleep 0.5
+        loop=$((loop + 1))
+        if [ $loop -gt 10 ]; then
+            ventoy_log "Waiting for ventoy device ... (attempt $loop)"
+        fi
+
+        if [ $loop -gt 10 ] && [ $loop -lt 15 ]; then
+            if which multipath >/dev/null 2>&1; then
+                multipath -F > /dev/null 2>&1
+            fi
+            ventoy_dm_create_ventoy
+        fi
+
+        if [ $loop -gt 40 ]; then
+            ventoy_log "ERROR: Timeout waiting for $DEVDM"
+            return 1
+        fi
+    done
+
+    ventoy_log "Ventoy device $DEVDM created"
+
+    # Create partition mappings
+    for ID in $(vtoypartx $DEVDM -oNR 2>/dev/null | grep -v NR); do
+        PART_START=$(vtoypartx $DEVDM -n$ID -oSTART,SECTORS 2>/dev/null | grep -v START | awk '{print $1}')
+        PART_SECTOR=$(vtoypartx $DEVDM -n$ID -oSTART,SECTORS 2>/dev/null | grep -v START | awk '{print $2}')
+
+        if [ -n "$PART_START" ] && [ -n "$PART_SECTOR" ]; then
+            echo "0 $PART_SECTOR linear $DEVDM $PART_START" > /ventoy_part_table
+            if dmsetup create ventoy$ID /ventoy_part_table 2>/dev/null; then
+                ventoy_log "Created partition mapping: /dev/mapper/ventoy$ID"
+            else
+                ventoy_log "WARNING: Failed to create ventoy$ID"
+            fi
+        fi
+    done
+
+    rm -f /ventoy_table
+    rm -f /ventoy_part_table
+    rm -f /ventoy_raw_table
+
+    # Trigger udev to process new devices
+    if which udevadm >/dev/null 2>&1; then
+        udevadm trigger --subsystem-match=block 2>/dev/null || true
+        udevadm settle --timeout=10 2>/dev/null || true
+    fi
+
+    ventoy_log "Ventoy device mapper setup completed"
+    return 0
+}
+
+# Main execution
+ventoy_check_efivars
+
+if vtoydump -c >/dev/null 2>/dev/null; then
+    vtoy_wait_for_device
+    if vtoydump > /dev/null 2>&1; then
+        vtoy_device_mapper_proc
+        exit 0
+    fi
+fi
+
+ventoy_log "No Ventoy boot detected, skipping device mapper"
+exit 0
